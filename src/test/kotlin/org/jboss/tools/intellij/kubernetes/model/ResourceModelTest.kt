@@ -143,13 +143,13 @@ class ResourceModelTest {
     fun `#invalidate(model) should cause #allContexts to (drop cache and) load again`() {
         // given
         model.getAllContexts()
-        verify(config, times(1)).contexts
+        verify(config, times(1)).getAll()
         clearInvocations(config)
         // when
         model.invalidate(model)
         model.getAllContexts()
         // then
-        verify(config, times(1)).contexts
+        verify(config, times(1)).getAll()
     }
 
     @Test
@@ -196,7 +196,7 @@ class ResourceModelTest {
         // when
         model.getAllContexts()
         // then
-        verify(config).contexts
+        verify(config).getAll()
     }
 
     @Test
@@ -205,7 +205,7 @@ class ResourceModelTest {
         // when
         val numOf = model.getAllContexts().size
         // then
-        assertThat(numOf).isEqualTo(config.contexts.size)
+        assertThat(numOf).isEqualTo(config.getAll().size)
     }
 
     @Test
@@ -216,7 +216,7 @@ class ResourceModelTest {
         model.getAllContexts()
         model.getAllContexts()
         // then
-        verify(config, times(1)).contexts
+        verify(config, times(1)).getAll()
     }
 
     @Test
@@ -295,8 +295,8 @@ class ResourceModelTest {
 
     private fun createKubeConfigContexts(currentContext: NamedContext?, allContexts: List<NamedContext>): KubeConfigContexts {
         return mock() {
-            on { contexts } doReturn allContexts
-            on { current } doReturn currentContext
+            on { getAll() } doReturn allContexts
+            on { getCurrent() } doReturn currentContext
             if (currentContext != null) {
                 on { isCurrent(eq(currentContext)) } doReturn true
             }

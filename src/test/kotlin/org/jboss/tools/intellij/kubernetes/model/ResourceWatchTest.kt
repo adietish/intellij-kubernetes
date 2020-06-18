@@ -17,6 +17,7 @@ import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import io.fabric8.kubernetes.api.model.HasMetadata
+import io.fabric8.kubernetes.api.model.ListOptions
 import io.fabric8.kubernetes.client.Watch
 import io.fabric8.kubernetes.client.Watcher
 import io.fabric8.kubernetes.client.dsl.Watchable
@@ -214,9 +215,15 @@ class ResourceWatchTest {
             return watch
         }
 
+        override fun watch(options: ListOptions?, p1: Watcher<HasMetadata>?): Watch {
+            this.watcher = watcher
+            return watch
+        }
+
         fun isWatchCalled(): Boolean {
             return watcher != null
         }
+
     }
 
     private class WatchFake: Watch {

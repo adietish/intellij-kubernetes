@@ -34,8 +34,8 @@ class Contexts(
 		get() {
 			synchronized(this) {
 				if (field == null
-						&& config.current != null) {
-					field = create(config.current!!)
+						&& config.getCurrent() != null) {
+					field = create(config.getCurrent()!!)
 				}
 				return field
 			}
@@ -45,7 +45,7 @@ class Contexts(
 		get() {
 			synchronized(this) {
 				if (field.isEmpty()) {
-					field.addAll(config.contexts.mapNotNull {
+					field.addAll(config.getAll().mapNotNull {
 						if (config.isCurrent(it)) {
 							current
 						} else {
