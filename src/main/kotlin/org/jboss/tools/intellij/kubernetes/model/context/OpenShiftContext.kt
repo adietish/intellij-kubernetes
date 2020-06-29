@@ -29,6 +29,7 @@ import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.PersistentV
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.SecretsProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.ServicesProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.JobsProvider
+import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.CronJobsProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.StorageClassesProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.openshift.DeploymentConfigsProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.openshift.ImageStreamsProvider
@@ -48,6 +49,7 @@ open class OpenShiftContext(
 				NodesProvider(client),
 				AllPodsProvider(client),
 				JobsProvider(client),
+				CronJobsProvider(client),
 				NamespacedPodsProvider(client),
 				ProjectsProvider(client),
 				ImageStreamsProvider(client),

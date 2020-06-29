@@ -29,6 +29,7 @@ import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.PersistentV
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.SecretsProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.ServicesProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.JobsProvider
+import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.CronJobsProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.StorageClassesProvider
 
 open class KubernetesContext(
@@ -44,6 +45,7 @@ open class KubernetesContext(
 				NodesProvider(client),
 				AllPodsProvider(client),
 				JobsProvider(client),
+				CronJobsProvider(client),
 				NamespacedPodsProvider(client),
 				ServicesProvider(client),
 				EndpointsProvider(client),

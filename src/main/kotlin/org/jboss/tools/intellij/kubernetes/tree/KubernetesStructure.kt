@@ -22,13 +22,13 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.Secret
 import io.fabric8.kubernetes.api.model.Service
+import io.fabric8.kubernetes.api.model.batch.CronJob
 import io.fabric8.kubernetes.api.model.batch.Job
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.storage.StorageClass
 import org.jboss.tools.intellij.kubernetes.model.IResourceModel
 import org.jboss.tools.intellij.kubernetes.model.ResourceException
 import org.jboss.tools.intellij.kubernetes.model.context.KubernetesContext
-import org.jboss.tools.intellij.kubernetes.model.resource.PodForJob
 import org.jboss.tools.intellij.kubernetes.model.resource.PodForService
 import org.jboss.tools.intellij.kubernetes.model.resourceName
 import org.jboss.tools.intellij.kubernetes.model.util.getContainers
@@ -46,6 +46,7 @@ import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.PODS
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.SECRETS
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.SERVICES
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.JOBS
+import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.CRONJOBS
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.STORAGE
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.STORAGE_CLASSES
 import org.jboss.tools.intellij.kubernetes.tree.KubernetesStructure.Folders.WORKLOADS
@@ -58,6 +59,7 @@ class KubernetesStructure(model: IResourceModel) : AbstractTreeStructureContribu
         val NODES = Folder("Nodes", Node::class.java)
         val WORKLOADS = Folder("Workloads", null)
 			val JOBS = Folder("Jobs", Job::class.java) //  Workloads / StatefulSets
+			val CRONJOBS = Folder("CronJobs", CronJob::class.java) //  Workloads / StatefulSets
             val PODS = Folder("Pods", Pod::class.java) //  Workloads / Pods
         val NETWORK = Folder("Network", null)
             val SERVICES = Folder("Services", Service::class.java) // Network / Services
@@ -117,6 +119,7 @@ class KubernetesStructure(model: IResourceModel) : AbstractTreeStructureContribu
 			is Pod -> PodDescriptor(element, parent, model)
 			is DescriptorFactory<*> -> element.create(parent, model)
 			is Job,
+			is CronJob,
             is Service,
             is Endpoints,
             is Ingress,
@@ -337,8 +340,9 @@ class KubernetesStructure(model: IResourceModel) : AbstractTreeStructureContribu
 				element<Any> {
 					anchor { it == WORKLOADS }
 					childElements {
-						listOf<Any>(PODS,
-								JOBS)
+						listOf<Any>(JOBS,
+								CRONJOBS,
+								PODS)
 					}
 					parentElements { getRootElement() }
 				},
@@ -352,16 +356,15 @@ class KubernetesStructure(model: IResourceModel) : AbstractTreeStructureContribu
 					}
 					parentElements { WORKLOADS }
 				},
-				element<Job> {
-					anchor { it is Job }
-					childElements {
-						model.resources(Pod::class.java)
-								.inCurrentNamespace()
-								.filtered(PodForJob(it))
+				element<Any> {
+						anchor { it == CRONJOBS }
+						childElements {
+							model.resources(CronJob::class.java)
+							.inCurrentNamespace()
 								.list()
 								.sortedBy(resourceName)
-					}
-					parentElements { WORKLOADS }
+						}
+						parentElements { WORKLOADS }
 				},
 				element<Any> {
 					anchor { it == PODS }
