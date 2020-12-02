@@ -36,29 +36,9 @@ import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.custom.Gene
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.custom.NamespacedCustomResourcesProvider
 import org.jboss.tools.intellij.kubernetes.model.resource.kubernetes.custom.NonNamespacedCustomResourcesProvider
 import org.jboss.tools.intellij.kubernetes.model.util.Clients
-import java.io.IOException
 import java.net.URL
 import java.util.function.Supplier
 
-interface IActiveContext<N: HasMetadata, C: KubernetesClient>: IContext {
-
-    enum class ResourcesIn {
-        CURRENT_NAMESPACE, ANY_NAMESPACE, NO_NAMESPACE
-    }
-    val masterUrl: URL
-    fun isOpenShift(): Boolean
-    fun setCurrentNamespace(namespace: String)
-    fun getCurrentNamespace(): String?
-    fun <R: HasMetadata> getAllResources(kind: ResourceKind<R>, resourcesIn: ResourcesIn): Collection<R>
-    fun getAllResources(definition: CustomResourceDefinition): Collection<GenericResource>
-    fun watch(kind: ResourceKind<out HasMetadata>)
-    fun watch(definition: CustomResourceDefinition)
-    fun add(resource: HasMetadata): Boolean
-    fun remove(resource: HasMetadata): Boolean
-    fun invalidate(kind: ResourceKind<*>)
-    fun replace(resource: HasMetadata): Boolean
-    fun close()
-}
 
 abstract class ActiveContext<N : HasMetadata, C : KubernetesClient>(
         private val modelChange: IModelChangeObservable,
@@ -97,7 +77,7 @@ abstract class ActiveContext<N : HasMetadata, C : KubernetesClient>(
         }
         logger<ActiveContext<*, *>>().debug("Setting current namespace to $namespace.")
 
-        val stopped = stopWatch(currentNamespace)
+        val stopped = ignore(currentNamespace)
         clients.get().configuration.namespace = namespace
         setCurrentNamespace(namespace, namespacedProviders.values)
         watchAll(stopped)
@@ -272,6 +252,27 @@ abstract class ActiveContext<N : HasMetadata, C : KubernetesClient>(
                 as Supplier<Watchable<Watch, Watcher<in HasMetadata>>?>)
     }
 
+    override fun ignore(kind: ResourceKind<out HasMetadata>) {
+        logger<ActiveContext<*, *>>().debug("Ignoring (stop watching) $kind resources.")
+        watch.ignore(kind)
+    }
+
+    override fun ignore(definition: CustomResourceDefinition) {
+        val kind = ResourceKind.create(definition.spec)
+        ignore(kind)
+    }
+
+    /**
+     * Ignores (stops watching) all watchables for the given namespace. Doesn't stop the cluster wide watchables nor
+     * the ones for a different namespace.
+     *
+     * @param namespace the namespace that the watchables should be stopped for
+     */
+    private fun ignore(namespace: String?): Collection<ResourceKind<out HasMetadata>> {
+        logger<ActiveContext<*, *>>().debug("Stopping all watches for namespace $namespace.")
+        return watch.ignoreAll(namespacedProviders(namespace).map { it.kind })
+    }
+
     override fun add(resource: HasMetadata): Boolean {
         val added = when (resource) {
             is CustomResourceDefinition ->
@@ -379,17 +380,6 @@ abstract class ActiveContext<N : HasMetadata, C : KubernetesClient>(
         namespacedProviders[kind]?.invalidate()
         nonNamespacedProviders[kind]?.invalidate()
         modelChange.fireModified(kind)
-    }
-
-    /**
-     * Stops watching all watchables for the given namespace. Doesn't stop the cluster wide watchables nor
-     * the ones for a different namespace.
-     *
-     * @param namespace the namespace that the watchables should be stopped for
-     */
-    private fun stopWatch(namespace: String?): Collection<ResourceKind<out HasMetadata>> {
-        logger<ActiveContext<*, *>>().debug("Stopping all watches for namespace $namespace.")
-        return watch.ignoreAll(namespacedProviders(namespace).map { it.kind })
     }
 
     protected open fun namespacedProviders(namespace: String?): List<INamespacedResourcesProvider<out HasMetadata, C>> {

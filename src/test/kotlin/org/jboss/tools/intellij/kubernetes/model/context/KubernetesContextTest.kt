@@ -133,9 +133,6 @@ class KubernetesContextTest {
 					listOf(nonNamespacedCustomResource1),
 					watchableSupplier2)
 
-	private val watchable3: Watchable<Watch, Watcher<in HasMetadata>> = mock()
-	private val watchableSupplier3: () -> Watchable<Watch, Watcher<in HasMetadata>>? = { watchable3 }
-
 	private val resourceWatch: ResourceWatch = mock()
 	private lateinit var context: TestableKubernetesContext
 
@@ -420,6 +417,26 @@ class KubernetesContextTest {
 			eq(clusterwideDefinition),
 			any()
 		)
+	}
+
+	@Test
+	fun `#ignore(kind) should ignore (stop watching) kind`() {
+		// given
+		// when
+		context.ignore(NamespacesProvider.KIND)
+		// then
+		verify(context, times(1)).ignore(NamespacesProvider.KIND)
+	}
+
+	@Test
+	fun `#ignore(definition) should ignore (stop watching) kind specified by definition`() {
+		// given
+		val definition = clusterwideDefinition
+		val kind = ResourceKind.create(definition.spec)
+		// when
+		context.ignore(definition)
+		// then
+		verify(context, times(1)).ignore(kind)
 	}
 
 	@Test

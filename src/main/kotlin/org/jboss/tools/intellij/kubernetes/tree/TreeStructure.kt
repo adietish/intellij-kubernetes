@@ -24,9 +24,8 @@ import org.jboss.tools.intellij.kubernetes.model.IResourceModel
 import org.jboss.tools.intellij.kubernetes.model.context.IActiveContext
 import org.jboss.tools.intellij.kubernetes.model.context.IContext
 import org.jboss.tools.intellij.kubernetes.model.resource.ResourceKind
-import java.util.*
+import java.util.Optional
 import javax.swing.Icon
-
 
 /**
  * A factory that creates nodes (PresentableNodeDescriptor) for a (tree-) model.
@@ -203,6 +202,11 @@ open class TreeStructure(
             val kind = element?.kind ?: return
             model.watch(kind)
         }
+
+        override fun ignoreResources() {
+            val kind = element?.kind ?: return
+            model.ignore(kind)
+        }
     }
 
     private class ErrorDescriptor(exception: java.lang.Exception, parent: NodeDescriptor<*>?, model: IResourceModel)
@@ -267,8 +271,13 @@ open class TreeStructure(
             }
         }
 
-        open fun watchResources() {}
+        open fun watchResources() {
+            // default nop impl
+        }
 
+        open fun ignoreResources() {
+            // default nop impl
+        }
     }
 
     data class Folder(val label: String, val kind: ResourceKind<out HasMetadata>?)
