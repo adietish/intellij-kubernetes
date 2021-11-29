@@ -94,6 +94,9 @@
 
 -> new Service "greeter2" appears in tree
 
+NOTE:
+ Cannot test: knative-tutorial for openshift is outdated, I cannot find Openshift Serverless in Install Operator
+
 **Push notification replaced by deleted notification**
 1. "Edit..." resource
 1. change/add label
@@ -138,6 +141,9 @@
 
 -> modified notification appears
 
+NOTE:
+ modify resource externally -> editor content updates (no any notifications)
+
 **Reload -> Modified notification disappears**
 1. "Edit..." resource
 1. modify resource (ex. change label)
@@ -147,6 +153,9 @@
 1. hit "Reload"
 
 -> editor shows new resource, notification disappears
+
+NOTE:
+ modify resource externally -> editor content updates (no any notifications)
 
 **Error notification appears when pasting invalid content**
 1. "Edit..." resource
@@ -185,6 +194,10 @@ metadata:
 2. restart IJ
 
 -> Error notification appears
+
+NOTE:
+ no error notification, I also can edit line with error (change aaaaaaaa line after "metadata" -> aaaaaaaasdasdasfasf) without any notifications -> remove wrong line -> add again -> error notification apears
+ error notification apears -> editor title changes from "name" to "name.yml" -> error notification disapears -> title changes to "name" back
 
 **Details in error notification shows cause**
 1. "Edit..." resource
@@ -236,4 +249,7 @@ spec:
 7. switch back to editor with cluster resource
 
 -> pull notification appears
+
+NOTE:
+ push to cluster -> switch back to editor -> content is updated (without any notifications)
 
